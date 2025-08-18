@@ -62,7 +62,7 @@ export default function WinnerNumbers({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-      <div className="bg-[#0a0a23] rounded-2xl shadow-2xl p-8 max-w-3xl w-full flex flex-col items-center relative max-h-[90vh] overflow-y-auto overflow-x-hidden">
+      <div className="bg-[#0a0a23] rounded-2xl shadow-2xl p-12 max-w-6xl w-[98vw] flex flex-col items-center relative max-h-[95vh] overflow-y-auto overflow-x-hidden">
         <button
           className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-blue-400 focus:outline-none"
           onClick={onClose}
@@ -74,7 +74,7 @@ export default function WinnerNumbers({
           Drawn Numbers
         </h2>
         <div className="w-full flex justify-center">
-          <table className="border-separate border-spacing-2 w-full">
+          <table className="border-separate border-spacing-4 w-full text-2xl sm:text-4xl md:text-5xl">
             <thead>
               <tr>
                 {headers.map((h) => (
@@ -97,7 +97,7 @@ export default function WinnerNumbers({
                     return (
                       <td
                         key={colIdx}
-                        className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-center align-middle p-0"
+                        className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 text-center align-middle p-0"
                       >
                         <div
                           className={`w-full h-full flex items-center justify-center rounded-lg font-extrabold shadow text-xl sm:text-3xl md:text-4xl cursor-pointer transition select-none ${
