@@ -70,9 +70,6 @@ export default function WinnerNumbers({
         >
           ×
         </button>
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">
-          Drawn Numbers
-        </h2>
         <div className="w-full flex justify-center">
           <table className="border-separate border-spacing-4 w-full text-2xl sm:text-4xl md:text-5xl">
             <thead>
@@ -123,9 +120,6 @@ export default function WinnerNumbers({
               ))}
             </tbody>
           </table>
-        </div>
-        <div className="mt-4 text-center text-blue-200 text-base">
-          Tap or click cells to mark them for easy checking!
         </div>
       </div>
     </div>
