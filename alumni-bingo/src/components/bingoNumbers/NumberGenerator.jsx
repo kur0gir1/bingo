@@ -67,7 +67,6 @@ export default function NumberGenerator({ config }) {
     const color = extractPrimaryColor(config.gradient);
     return (
       <div>
-        <div className="text-white mb-1 text-sm">Pattern</div>
         <div className="grid grid-cols-5 gap-1 bg-black p-2 rounded-xl w-full h-full">
           {grid.map((row, r) => row.map((on, c) => (
             <div
