@@ -1,145 +1,117 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import WinnerNumbers from "./winnerNumbers";
+import GameSwitcher from "./GameSwitcher";
+import NumberGenerator from "./NumberGenerator";
+import Loader from "../loader/loader";
 
 export default function BingoNumbers() {
-  const [resetSelected, setResetSelected] = useState(0);
-  // Flat array of all numbers
-  const allNumbers = Array.from({ length: 75 }, (_, i) => i + 1);
-  // Load from localStorage if available
-  const [drawn, setDrawn] = useState(() => {
-    const stored = localStorage.getItem("bingoDrawnNumbers");
-    return stored ? JSON.parse(stored) : [];
+  // Games config: 5 games with color gradient and a simple pattern id
+  const games = [
+    // game1: green — diamond
+    {
+      id: "g1",
+      name: "Game 1",
+      gradient: "linear-gradient(45deg, #6BFFB8 0%, #006400 100%)",
+      pattern: "diamond",
+    },
+    // game2: orange — cross
+    {
+      id: "g2",
+      name: "Game 2",
+      gradient: "linear-gradient(45deg, #FFB74D 0%, #FF6F00 100%)",
+      pattern: "cross",
+    },
+    // game3: violet — outside (all outside boxes)
+    {
+      id: "g3",
+      name: "Game 3",
+      gradient: "linear-gradient(45deg, #C388FF 0%, #4B0082 100%)",
+      pattern: "outside",
+    },
+    // game4: red — diagonal
+    {
+      id: "g4",
+      name: "Game 4",
+      gradient: "linear-gradient(45deg, #FF6B6B 0%, #8B0000 100%)",
+      pattern: "diagonal",
+    },
+    // game5: cooler blue — blackout
+    {
+      id: "g5",
+      name: "Game 5",
+      gradient: "linear-gradient(45deg, #4A90E2 0%, #174EA6 100%)",
+      pattern: "blackout",
+    },
+  ];
+  const [selectedGame, setSelectedGame] = useState(() => {
+    try {
+      const s = localStorage.getItem("selectedBingoGame");
+      return s ? JSON.parse(s) : 0;
+    } catch {
+      return 0;
+    }
   });
-  const [last, setLast] = useState(() => {
-    const stored = localStorage.getItem("bingoLastNumber");
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [showWinnerModal, setShowWinnerModal] = useState(false);
 
-  // Draw a new number
-  const handleDraw = () => {
-    const remaining = allNumbers.filter((n) => !drawn.includes(n));
-    if (remaining.length === 0) return;
-    const idx = Math.floor(Math.random() * remaining.length);
-    const num = remaining[idx];
-    setDrawn((prev) => {
-      const updated = [...prev, num];
-      localStorage.setItem("bingoDrawnNumbers", JSON.stringify(updated));
-      return updated;
-    });
-    setLast(() => {
-      localStorage.setItem("bingoLastNumber", JSON.stringify(num));
-      return num;
-    });
-  };
+  const [loading, setLoading] = useState(false)
+  const [nextGameIndex, setNextGameIndex] = useState(null)
 
-  // Reset drawn numbers and localStorage
-  const handleReset = () => {
-    setDrawn([]);
-    setLast(null);
-    localStorage.removeItem("bingoDrawnNumbers");
-    localStorage.removeItem("bingoLastNumber");
-    setResetSelected((c) => c + 1);
-  };
-
-  // Sync state to localStorage on mount (in case of manual edits)
-  useEffect(() => {
-    localStorage.setItem("bingoDrawnNumbers", JSON.stringify(drawn));
-    localStorage.setItem("bingoLastNumber", JSON.stringify(last));
-  }, [drawn, last]);
-
-  // Helper to get column label
-  const getLabel = (n) => {
-    if (n <= 15) return "B";
-    if (n <= 30) return "I";
-    if (n <= 45) return "N";
-    if (n <= 60) return "G";
-    return "O";
-  };
-
-  // Get last 5 draws before the current (oldest to newest, not including current)
-  const previousDraws = drawn.length > 1 ? drawn.slice(-6, -1) : [];
+  // Persist selection
+  React.useEffect(() => {
+    try {
+      localStorage.setItem("selectedBingoGame", JSON.stringify(selectedGame));
+    } catch {
+      /* ignore */
+    }
+  }, [selectedGame]);
 
   return (
-    <div
-      className="flex items-center justify-center bg-blue-400"
-      style={{ width: "100vw", height: "100vh" }}
-    >
-      <div className="flex flex-col items-center w-full max-w-5xl mx-auto h-full justify-center px-2">
-        <div className="text-l text-white py-4">LA CONSOLACION COLLEGE BACOLOD ALUMNI ASSOCIATION</div>
-        <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">BINGO SOCIAL</div>
-        <div className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-10 mt-4 sm:mt-8 tracking-wide text-center">
-          PREVIOUS DRAWS:
-        </div>
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 md:gap-12 mb-8 sm:mb-16 min-h-[6rem] sm:min-h-[8rem] w-full">
-          {previousDraws.map((n, i) => (
-            <div
-              key={i}
-              className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center text-white text-2xl sm:text-4xl md:text-5xl font-bold shadow-2xl"
-              style={{
-                background: "linear-gradient(135deg, #24B6FF 0%, #1C06EA 100%)",
+    <>
+      <div
+        className="flex items-center justify-center w-full min-h-screen"
+        style={{
+          background: games[selectedGame].gradient,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          transition: "background 400ms ease",
+        }}
+      >
+        <div className="flex flex-col items-center w-full max-w-5xl mx-auto h-full justify-center px-2">
+          {/* NumberGenerator renders the draws and controls for the selected game */}
+          <NumberGenerator
+            config={games[selectedGame]}
+          />
+
+          {/* Loader overlay when switching games */}
+          <Loader
+            show={loading}
+            from={1}
+            to={75}
+            duration={900}
+            gradient={nextGameIndex !== null ? games[nextGameIndex].gradient : games[selectedGame].gradient}
+            onFinish={() => {
+              if (nextGameIndex !== null) {
+                setSelectedGame(nextGameIndex)
+                setNextGameIndex(null)
+              }
+              setLoading(false)
+            }}
+          />
+
+          {/* GameSwitcher moved to bottom */}
+          <div className="w-full flex items-center justify-center mt-6 pb-6">
+            <GameSwitcher
+              games={games}
+              selectedIndex={selectedGame}
+              onSelect={(i) => {
+                if (i === selectedGame) return
+                // start loader, then swap game when loader finishes
+                setNextGameIndex(i)
+                setLoading(true)
               }}
-            >
-              <span className="text-2xl sm:text-4xl md:text-5xl font-bold">
-                {getLabel(n)} {n}
-              </span>
-            </div>
-          ))}
+            />
+          </div>
         </div>
-        <div className="flex flex-col items-center justify-center mb-10 sm:mb-20 w-full">
-          {last ? (
-            <div className="flex flex-row items-end gap-4 sm:gap-8 w-full justify-center">
-              <span className="text-white text-[5rem] sm:text-[10rem] md:text-[14rem] font-extrabold leading-none drop-shadow-2xl">
-                {getLabel(last)}
-              </span>
-              <span className="text-white text-[5rem] sm:text-[10rem] md:text-[14rem] font-extrabold leading-none drop-shadow-2xl">
-                {last}
-              </span>
-            </div>
-          ) : (
-            <div className="text-blue-700 text-3xl sm:text-5xl font-bold text-center">
-              Press NEXT NUMBER to start
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-12 mt-2 sm:mt-4 w-full justify-center items-center">
-          <button
-            className="px-6 py-4 sm:px-12 sm:py-6 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition disabled:opacity-50 border-none w-full sm:w-auto"
-            style={{
-              background: "linear-gradient(45deg, #24B6FF 0%, #1C06EA 100%)",
-              boxShadow: "0 8px 32px 0 rgba(34,10,255,0.25)",
-              border: "none",
-            }}
-            onClick={handleDraw}
-            disabled={drawn.length === 75}
-          >
-            NEXT NUMBER
-          </button>
-          <button
-            className="px-6 py-4 sm:px-12 sm:py-6 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition border-none w-full sm:w-auto"
-            style={{
-              background: "linear-gradient(45deg, #24B6FF 0%, #1C06EA  100%)",
-              boxShadow: "0 8px 32px 0 rgba(34,10,255,0.25)",
-              border: "none",
-            }}
-            onClick={() => setShowWinnerModal(true)}
-          >
-            DO WE HAVE A WINNER?
-          </button>
-          <button
-            className="px-6 py-4 sm:px-12 sm:py-6 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition border-none w-full sm:w-auto bg-red-700 hover:bg-red-800"
-            onClick={handleReset}
-          >
-            RESET
-          </button>
-        </div>
-        <WinnerNumbers
-          open={showWinnerModal}
-          onClose={() => setShowWinnerModal(false)}
-          numbers={drawn}
-          resetSelected={resetSelected}
-        />
       </div>
-    </div>
+    </>
   );
 }

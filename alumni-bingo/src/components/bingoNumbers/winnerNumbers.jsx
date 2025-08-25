@@ -62,7 +62,7 @@ export default function WinnerNumbers({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-      <div className="bg-[#0a0a23] rounded-2xl shadow-2xl p-12 max-w-6xl w-[98vw] flex flex-col items-center relative max-h-[95vh] overflow-y-auto overflow-x-hidden">
+      <div className="rounded-2xl shadow-2xl p-12 max-w-6xl w-[98vw] flex flex-col items-center relative max-h-[95vh] overflow-y-auto overflow-x-hidden">
         <button
           className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-blue-400 focus:outline-none"
           onClick={onClose}
@@ -99,13 +99,9 @@ export default function WinnerNumbers({
                         <div
                           className={`w-full h-full flex items-center justify-center rounded-lg font-extrabold shadow text-xl sm:text-3xl md:text-4xl cursor-pointer transition select-none ${
                             isDrawn
-                              ? "bg-gradient-to-b from-blue-900 to-blue-700 text-white"
-                              : "bg-gray-800 text-gray-600"
-                          } ${
-                            isSelected
-                              ? "ring-4 ring-blue-700 ring-offset-2"
-                              : ""
-                          }`}
+                              ? 'bg-[#0057D9] text-white shadow-lg'
+                              : 'bg-[#0b0b12] text-white'
+                          } ${isSelected ? 'ring-4 ring-black ring-opacity-40 ring-offset-2' : ''}`}
                           onClick={() => handleCellClick(rowIdx, colIdx)}
                           tabIndex={0}
                           role="button"

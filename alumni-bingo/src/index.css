@@ -3,3 +3,10 @@
 body{
   font-family: "Noto Sans", sans-serif;
 }
+
+/* Fallback for tabular numbers utility */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1;
+  font-feature-settings: "tnum" 1;
+}
