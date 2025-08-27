@@ -16,6 +16,8 @@ function BingoHeader({ label, isFirst, isLast }) {
 
 // BingoCell: renders a single bingo cell
 function BingoCell({ value, isSelected, isFree, rounded, onClick, onKeyDown }) {
+  // No movement threshold: taps and clicks activate immediately on pointer up
+
   return (
     <div
       className={`
@@ -29,28 +31,12 @@ function BingoCell({ value, isSelected, isFree, rounded, onClick, onKeyDown }) {
         ${
           isSelected
             ? "bg-blue-700 text-blue-100 border-blue-400"
-            : "text-blue-300 hover:bg-blue-900"
+            : "text-blue-300"
         }
         ${rounded}
       `}
-      onPointerDown={(e) => {
-        // Use pointer events to distinguish mouse vs touch and avoid double-firing
-        // For touch, prevent the synthesized click that often follows a touch event
-        try {
-          const pt = e.pointerType;
-          if (pt === 'touch') {
-            e.preventDefault();
-            onClick && onClick();
-            return;
-          }
-          // For mouse/pen, trigger the same handler on pointer down
-          if (pt === 'mouse' || pt === 'pen' || !pt) {
-            onClick && onClick();
-          }
-        } catch {
-          // Fallback: call click handler
-          onClick && onClick();
-        }
+      onClick={() => {
+        onClick && onClick();
       }}
       tabIndex={0}
       role="gridcell"
@@ -58,6 +44,7 @@ function BingoCell({ value, isSelected, isFree, rounded, onClick, onKeyDown }) {
       style={{
         pointerEvents: isFree ? "none" : "auto",
         userSelect: "none",
+        touchAction: "manipulation",
         outline: isSelected ? "2px solid #3b82f6" : "none",
         transition: "background 0.2s, outline 0.2s",
       }}
@@ -77,6 +64,50 @@ function columnNumbers(start, end, count) {
   return numbers;
 }
 
+// Move initializers outside the component so they are stable references
+function getInitialColumnsForKey(getCardKey, idx) {
+  const CARD_KEY = getCardKey(idx);
+  const stored = localStorage.getItem(CARD_KEY);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length === 5) return parsed;
+    } catch {
+      /* ignore parse error */
+    }
+  }
+  const generated = [
+    columnNumbers(1, 15, 5),
+    columnNumbers(16, 30, 5),
+    columnNumbers(31, 45, 5),
+    columnNumbers(46, 60, 5),
+    columnNumbers(61, 75, 5),
+  ];
+  generated[2][2] = "FREE";
+  localStorage.setItem(CARD_KEY, JSON.stringify(generated));
+  return generated;
+}
+
+function getInitialSelectedForKey(getSelectedKey, idx) {
+  const SELECTED_KEY = getSelectedKey(idx);
+  const stored = localStorage.getItem(SELECTED_KEY);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length === 5) return parsed;
+    } catch {
+      /* ignore parse error */
+    }
+  }
+  return Array(5)
+    .fill(null)
+    .map((row, i) =>
+      Array(5)
+        .fill(false)
+        .map((cell, j) => i === 2 && j === 2)
+    );
+}
+
 export default function BingoCard() {
   // Card count state (max 2)
   const [cardCount, setCardCount] = useState(() => {
@@ -88,51 +119,9 @@ export default function BingoCard() {
   const getCardKey = (idx) => `bingoCardNumbers_${idx}`;
   const getSelectedKey = (idx) => `bingoCardSelected_${idx}`;
 
-  // Generate card numbers
-  const getInitialColumns = (idx) => {
-    const CARD_KEY = getCardKey(idx);
-    const stored = localStorage.getItem(CARD_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length === 5) return parsed;
-      } catch {
-        /* ignore parse error */
-      }
-    }
-    const generated = [
-      columnNumbers(1, 15, 5),
-      columnNumbers(16, 30, 5),
-      columnNumbers(31, 45, 5),
-      columnNumbers(46, 60, 5),
-      columnNumbers(61, 75, 5),
-    ];
-    generated[2][2] = "FREE";
-    localStorage.setItem(CARD_KEY, JSON.stringify(generated));
-    return generated;
-  };
-
-  // Generate selected state
-  const getInitialSelected = (idx) => {
-    const SELECTED_KEY = getSelectedKey(idx);
-    const stored = localStorage.getItem(SELECTED_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length === 5) return parsed;
-      } catch {
-        /* ignore parse error */
-      }
-    }
-    // Free space is always selected
-    return Array(5)
-      .fill(null)
-      .map((row, i) =>
-        Array(5)
-          .fill(false)
-          .map((cell, j) => i === 2 && j === 2)
-      );
-  };
+  // Generate card numbers using stable helpers
+  const getInitialColumns = (idx) => getInitialColumnsForKey(getCardKey, idx);
+  const getInitialSelected = (idx) => getInitialSelectedForKey(getSelectedKey, idx);
 
   // State for each card
   const [columnsArr, setColumnsArr] = useState(() => [
@@ -144,16 +133,123 @@ export default function BingoCard() {
     cardCount === 2 ? getInitialSelected(1) : null,
   ]);
   const [showModalArr, setShowModalArr] = useState([false, false]);
+  // BroadcastChannel for cross-tab sync (optional, graceful fallback)
+  const bcRef = React.useRef(null);
+  const CLEAR_LOCK_KEY = 'bingo_clear_lock';
+  const lastUpdateRef = React.useRef(0);
   const headers = ["B", "I", "N", "G", "O"];
 
   // Persist state for each card
   useEffect(() => {
+    // If a clear is in progress, skip persisting to avoid races
+    try {
+      if (localStorage.getItem(CLEAR_LOCK_KEY)) return;
+    } catch {
+      /* ignore */
+    }
     for (let i = 0; i < cardCount; i++) {
       localStorage.setItem(getSelectedKey(i), JSON.stringify(selectedArr[i]));
       localStorage.setItem(getCardKey(i), JSON.stringify(columnsArr[i]));
     }
     localStorage.setItem("bingoCardCount", cardCount);
+    // notify other tabs that an update happened
+    try {
+      // prepare payload snapshot
+      const payload = {
+        columnsArr,
+        selectedArr,
+        cardCount,
+      };
+      const ts = Date.now();
+      lastUpdateRef.current = ts;
+      if (bcRef.current) bcRef.current.postMessage({ type: 'update', ts, payload });
+    } catch {
+      /* ignore */
+    }
   }, [selectedArr, columnsArr, cardCount]);
+
+  // Set up BroadcastChannel to listen for updates/resets from other tabs
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    try {
+      bcRef.current = new BroadcastChannel("bingo_channel");
+      bcRef.current.onmessage = (ev) => {
+        const msg = ev.data || {};
+        if (msg.type === 'clear') {
+          // another tab requested a hard clear: remove stored keys, reset state and reload
+          let currentCount = 1;
+          try {
+            currentCount = Number(localStorage.getItem('bingoCardCount') || 1);
+            localStorage.removeItem(getCardKey(0));
+            localStorage.removeItem(getSelectedKey(0));
+            localStorage.removeItem('bingoCardCount');
+            if (currentCount === 2) {
+              localStorage.removeItem(getCardKey(1));
+              localStorage.removeItem(getSelectedKey(1));
+            }
+          } catch {
+            /* ignore */
+          }
+          // reset in-memory state to cleared values so persistence doesn't re-write old data
+          const emptySelected = Array(5)
+            .fill(null)
+            .map((_, i) => Array(5).fill(false).map((_, j) => i === 2 && j === 2));
+          setColumnsArr([null, currentCount === 2 ? null : null]);
+          setSelectedArr([emptySelected, currentCount === 2 ? emptySelected : null]);
+          // reload to ensure fully clean UI
+          window.location.reload();
+          return;
+        }
+        if (msg.type === "reset") {
+          // another tab requested a hard reset, reload to ensure clean state
+          window.location.reload();
+          return;
+        }
+        if (msg.type === 'update') {
+          // If this update is older or from ourselves, ignore
+          try {
+            if (!msg.ts || msg.ts <= (lastUpdateRef.current || 0)) return;
+            const payload = msg.payload || {};
+            // Simple deep-inequality check by JSON compare (small payloads)
+            const localSnapshot = JSON.stringify({ columnsArr, selectedArr, cardCount });
+            const incomingSnapshot = JSON.stringify({ columnsArr: payload.columnsArr, selectedArr: payload.selectedArr, cardCount: payload.cardCount });
+            if (localSnapshot === incomingSnapshot) return; // already in sync
+            // Apply incoming state as authoritative
+            if (payload.cardCount != null) setCardCount(payload.cardCount);
+            if (payload.columnsArr) setColumnsArr(payload.columnsArr);
+            if (payload.selectedArr) setSelectedArr(payload.selectedArr);
+            // persist incoming to localStorage so all tabs match
+            try {
+              if (payload.columnsArr) localStorage.setItem(getCardKey(0), JSON.stringify(payload.columnsArr[0]));
+              if (payload.selectedArr) localStorage.setItem(getSelectedKey(0), JSON.stringify(payload.selectedArr[0]));
+              if (payload.cardCount != null) localStorage.setItem('bingoCardCount', payload.cardCount);
+              if (payload.cardCount === 2) {
+                if (payload.columnsArr && payload.columnsArr[1]) localStorage.setItem(getCardKey(1), JSON.stringify(payload.columnsArr[1]));
+                if (payload.selectedArr && payload.selectedArr[1]) localStorage.setItem(getSelectedKey(1), JSON.stringify(payload.selectedArr[1]));
+              }
+            } catch {
+              // ignore storage errors
+            }
+            lastUpdateRef.current = msg.ts;
+          } catch {
+            /* ignore malformed message */
+          }
+        }
+      };
+    } catch {
+      /* ignore channel errors */
+    }
+    return () => {
+      try {
+        if (bcRef.current) {
+          bcRef.current.close();
+          bcRef.current = null;
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+  }, [cardCount, columnsArr, selectedArr]);
 
   // Free space is always selected for each card
   useEffect(() => {
@@ -216,15 +312,31 @@ export default function BingoCard() {
 
   // Clear all
   const handleClear = () => {
+    try {
+      // Set a brief lock so persistence effects skip writing while we clear
+      localStorage.setItem(CLEAR_LOCK_KEY, String(Date.now()));
+    } catch {
+      // ignore
+    }
+    // Broadcast clear so other tabs can reset and avoid re-persisting
+    try {
+      if (bcRef.current) bcRef.current.postMessage({ type: 'clear', ts: Date.now() });
+    } catch {
+      /* ignore */
+    }
     // Remove only bingo-related keys for safety
-    Object.keys(localStorage)
-      .filter(
-        (k) =>
-          k.startsWith("bingoCardNumbers_") ||
-          k.startsWith("bingoCardSelected_") ||
-          k === "bingoCardCount"
-      )
-      .forEach((k) => localStorage.removeItem(k));
+    try {
+      Object.keys(localStorage)
+        .filter(
+          (k) =>
+            k.startsWith("bingoCardNumbers_") ||
+            k.startsWith("bingoCardSelected_") ||
+            k === "bingoCardCount"
+        )
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {
+      /* ignore */
+    }
     // Force reload immediately to ensure all state is reset and synced
     window.location.reload();
   };
