@@ -33,8 +33,25 @@ function BingoCell({ value, isSelected, isFree, rounded, onClick, onKeyDown }) {
         }
         ${rounded}
       `}
-      onClick={onClick}
-      onTouchStart={onClick}
+      onPointerDown={(e) => {
+        // Use pointer events to distinguish mouse vs touch and avoid double-firing
+        // For touch, prevent the synthesized click that often follows a touch event
+        try {
+          const pt = e.pointerType;
+          if (pt === 'touch') {
+            e.preventDefault();
+            onClick && onClick();
+            return;
+          }
+          // For mouse/pen, trigger the same handler on pointer down
+          if (pt === 'mouse' || pt === 'pen' || !pt) {
+            onClick && onClick();
+          }
+        } catch {
+          // Fallback: call click handler
+          onClick && onClick();
+        }
+      }}
       tabIndex={0}
       role="gridcell"
       aria-selected={isSelected}
