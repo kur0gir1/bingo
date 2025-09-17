@@ -10,7 +10,7 @@ export default function ConfirmReset({ open, onConfirm, onCancel, gradient }) {
         <div className="text-sm text-gray-200 mb-4">This will clear all drawn numbers and reset the game. Are you sure?</div>
         <div className="flex gap-3 justify-end">
           <button
-            className="px-4 py-2 rounded-md bg-gray-700 text-black"
+            className="px-4 py-2 rounded-md bg-gray-700 text-white"
             onClick={onCancel}
           >
             Cancel
