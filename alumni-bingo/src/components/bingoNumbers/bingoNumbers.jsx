@@ -11,37 +11,37 @@ export default function BingoNumbers() {
     {
       id: "g1",
       name: "Game 1",
-      gradient: "linear-gradient(45deg, #6BFFB8 0%, #006400 100%)",
-      pattern: "diamond",
+  gradient: "#eff1e4",
+      pattern: "B",
     },
     // game2: orange — cross
     {
       id: "g2",
       name: "Game 2",
-      gradient: "linear-gradient(45deg, #FFB74D 0%, #FF6F00 100%)",
-      pattern: "cross",
+  gradient: "#eff1e4",
+      pattern: "M",
     },
     // game3: violet — outside (all outside boxes)
     {
       id: "g3",
       name: "Game 3",
-      gradient: "linear-gradient(45deg, #C388FF 0%, #4B0082 100%)",
-      pattern: "outside",
+  gradient: "#eff1e4",
+      pattern: "E",
     },
     // game4: red — diagonal
     {
       id: "g4",
       name: "Game 4",
-      gradient: "linear-gradient(45deg, #FF6B6B 0%, #8B0000 100%)",
-      pattern: "diagonal",
+  gradient: "#eff1e4",
+      pattern: "G",
     },
     // game5: cooler blue — blackout
-    {
-      id: "g5",
-      name: "Game 5",
-      gradient: "linear-gradient(45deg, #4A90E2 0%, #174EA6 100%)",
-      pattern: "blackout",
-    },
+    // {
+    //   id: "g5",
+    //   name: "Game 5",
+    //   gradient: "linear-gradient(45deg, #4A90E2 0%, #174EA6 100%)",
+    //   pattern: "blackout",
+    // },
   ];
   const [selectedGame, setSelectedGame] = useState(() => {
     try {
@@ -69,10 +69,8 @@ export default function BingoNumbers() {
       <div
         className="flex items-center justify-center w-full min-h-screen"
         style={{
-          background: games[selectedGame].gradient,
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'cover',
-          transition: "background 400ms ease",
+          backgroundColor: games[selectedGame].gradient,
+          transition: "background-color 400ms ease",
         }}
       >
         <div className="flex flex-col items-center w-full max-w-5xl mx-auto h-full justify-center px-2">

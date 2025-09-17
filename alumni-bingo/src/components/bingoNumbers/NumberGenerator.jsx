@@ -1,6 +1,7 @@
 import React from "react";
 import WinnerNumbers from "./winnerNumbers";
 import ConfirmReset from "./ConfirmReset";
+import SuperBingo from "../../assets/superbingo.png";
 
 export default function NumberGenerator({ config }) {
   // config: { gradient, pattern }
@@ -98,55 +99,68 @@ export default function NumberGenerator({ config }) {
     Array.from({ length: 5 }, () => Array(5).fill(fill));
   const defaultGridFor = (pattern) => {
     const g = makeGrid(false);
-    switch ((pattern || "").toLowerCase()) {
-      case "diamond":
-        // diamond outline only: cells with Manhattan distance exactly 2 from center
-        for (let r = 0; r < 5; r++)
-          for (let c = 0; c < 5; c++)
-            if (Math.abs(r - 2) + Math.abs(c - 2) === 2) g[r][c] = true;
+    const p = typeof pattern === "string" ? pattern.trim().toUpperCase() : "";
+    switch (p) {
+      case "B":
+        // Draw B: left column, top/bottom row, and center row
+        for (let r = 0; r < 5; r++) g[r][0] = true; // left column
+        for (let c = 0; c < 5; c++)
+          (g[0][c] = true), (g[2][c] = true), (g[4][c] = true); // top, center, bottom row
+        g[1][4] = true;
+        g[3][4] = true; // right edge for upper/lower loop
+        g[0][4] = false;
+        g[4][4] = false;
         return g;
-      case "cross":
-        // 'cross' as an X: both diagonals
-        for (let i = 0; i < 5; i++) {
-          g[i][i] = true;
-          g[i][4 - i] = true;
-        }
+      case "M":
+        // Draw M: left/right columns, top row, diagonals to center
+        for (let r = 0; r < 5; r++) (g[r][0] = true), (g[r][4] = true); // left/right columns
+        for (let c = 0; c < 5; c++) g[0][c] = true; // top row
+        // remove top-row cells at columns 2,3,4 (1-based) => zero-based indices 1,2,3
+        g[0][1] = false;
+        g[0][2] = false;
+        g[0][3] = false;
+        g[1][1] = true;
+        g[2][2] = true;
+        g[1][3] = true; // diagonals
         return g;
-      case "outside":
-        for (let r = 0; r < 5; r++)
-          for (let c = 0; c < 5; c++)
-            if (r === 0 || r === 4 || c === 0 || c === 4) g[r][c] = true;
+      case "E":
+        // Draw E: left column, top/middle/bottom row
+        for (let r = 0; r < 5; r++) g[r][0] = true; // left column
+        for (let c = 0; c < 5; c++)
+          (g[0][c] = true), (g[2][c] = true), (g[4][c] = true); // top, middle, bottom row
         return g;
-      case "diagonal":
-        // bottom-right triangle (opposite side): cells where r + c >= 4
-        for (let r = 0; r < 5; r++)
-          for (let c = 0; c < 5; c++) if (r + c >= 4) g[r][c] = true;
+      case "G":
+        // Draw G: left column, top/bottom row, right-bottom, center row (open G)
+        for (let r = 0; r < 5; r++) g[r][0] = true; // left column
+        for (let c = 0; c < 5; c++) (g[0][c] = true), (g[4][c] = true); // top/bottom row
+        g[2][2] = true;
+        g[2][3] = true;
+        g[2][4] = true; // center row (open G)
+        g[3][4] = true;
+        g[4][4] = true; // right-bottom
         return g;
-      case "blackout":
-        return makeGrid(true);
       default:
-        return g;
+        if (p) console.warn("[NumberGenerator] unknown pattern:", pattern);
+        return g; // fallback: empty 5x5 grid
     }
   };
 
   return (
     <div className="flex flex-col items-center w-full max-w-5xl mx-auto h-full justify-center px-2">
-      <div className="text-l text-white py-2">
-        LA CONSOLACION COLLEGE BACOLOD ALUMNI ASSOCIATION
+      {/* <div className="text-l text-black py-2">BMEG</div> */}
+      <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-black">
+        <img src={SuperBingo} alt="Super Bingo" className="object-contain w-2xl" />
       </div>
-      <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
-        BINGO SOCIAL
-      </div>
-      <div className="text-white text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-6 mt-1 sm:mt-2 tracking-wide text-center">
+      <div className="text-black text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-6 mt-1 sm:mt-2 tracking-wide text-center">
         PREVIOUS DRAWS:
       </div>
       <div className="flex items-start justify-center gap-4 sm:gap-6 md:gap-8 mb-4 sm:mb-8 min-h-[4.5rem] sm:min-h-[6rem] w-full">
         {previousDraws.map((n, i) => (
           <div
             key={i}
-            className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center text-white text-2xl sm:text-4xl md:text-5xl font-bold shadow-2xl"
+            className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full flex flex-col items-center justify-center text-black text-2xl sm:text-4xl md:text-5xl font-bold shadow-2xl"
             style={{
-              background: config.gradient,
+              backgroundColor: config.gradient,
             }}
           >
             <span className="text-2xl sm:text-4xl md:text-5xl font-bold">
@@ -170,6 +184,7 @@ export default function NumberGenerator({ config }) {
               marginLeft: "-6rem",
             }}
           >
+            <h1 className="text-2xl font-bold">Pattern</h1>
             {renderPatternPreview()}
           </div>
         </div>
@@ -183,15 +198,15 @@ export default function NumberGenerator({ config }) {
               className="flex flex-row items-end gap-4 sm:gap-8 w-full justify-center"
               style={{ transform: "translateX(-2rem)" }}
             >
-              <span className="tabular-nums text-white text-[6.25rem] sm:text-[11.25rem] md:text-[15.25rem] font-extrabold leading-none drop-shadow-2xl">
+              <span className="tabular-nums text-black text-[6.25rem] sm:text-[11.25rem] md:text-[15.25rem] font-extrabold leading-none drop-shadow-2xl">
                 {getLabel(last)}
               </span>
-              <span className="tabular-nums text-white text-[6.25rem] sm:text-[11.25rem] md:text-[15.25rem] font-extrabold leading-none drop-shadow-2xl">
+              <span className="tabular-nums text-black text-[6.25rem] sm:text-[11.25rem] md:text-[15.25rem] font-extrabold leading-none drop-shadow-2xl">
                 {last}
               </span>
             </div>
           ) : (
-            <div className="text-white text-3xl sm:text-5xl font-bold text-center">
+            <div className="text-black text-3xl sm:text-5xl font-bold text-center">
               Press START GAME to start
             </div>
           )}
@@ -200,9 +215,9 @@ export default function NumberGenerator({ config }) {
 
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mt-1 sm:mt-2 w-full justify-center items-center">
         <button
-          className="px-6 py-4 sm:px-12 sm:py-6 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition disabled:opacity-50 border-none w-full sm:w-auto"
+          className="px-6 py-4 sm:px-12 sm:py-6 text-black rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition disabled:opacity-50 border-none w-full sm:w-auto"
           style={{
-            background: config.gradient,
+            backgroundColor: config.gradient,
             boxShadow: "0 4px 16px 0 rgba(0,0,0,0.25)",
             border: "none",
           }}
@@ -212,9 +227,9 @@ export default function NumberGenerator({ config }) {
           {drawn.length === 0 ? "START GAME" : "NEXT NUMBER"}
         </button>
         <button
-          className="px-6 py-4 sm:px-12 sm:py-6 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition border-none w-full sm:w-auto"
+          className="px-6 py-4 sm:px-12 sm:py-6 text-black rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition border-none w-full sm:w-auto"
           style={{
-            background: config.gradient,
+            backgroundColor: config.gradient,
             boxShadow: "0 4px 16px 0 rgba(0,0,0,0.25)",
             border: "none",
           }}
@@ -223,7 +238,7 @@ export default function NumberGenerator({ config }) {
           DO WE HAVE A WINNER?
         </button>
         <button
-          className="px-6 py-4 sm:px-12 sm:py-6 text-white rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition border-none w-full sm:w-auto bg-red-700 hover:bg-red-800"
+          className="px-6 py-4 sm:px-12 sm:py-6 text-black rounded-2xl font-bold text-xl sm:text-2xl shadow-2xl transition border-none w-full sm:w-auto bg-red-700 hover:bg-red-800"
           onClick={() => setShowConfirm(true)}
         >
           RESET
