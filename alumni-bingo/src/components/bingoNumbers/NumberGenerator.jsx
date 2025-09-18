@@ -50,11 +50,11 @@ export default function NumberGenerator({ config }) {
   };
 
   const getLabel = (n) => {
-    if (n <= 15) return "B";
-    if (n <= 30) return "I";
-    if (n <= 45) return "N";
-    if (n <= 60) return "G";
-    return "O";
+    if (n <= 15) return "S";
+    if (n <= 30) return "U";
+    if (n <= 45) return "P";
+    if (n <= 60) return "E";
+    return "R";
   };
 
   const previousDraws = drawn.length > 1 ? drawn.slice(-6, -1) : [];

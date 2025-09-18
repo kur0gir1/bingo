@@ -26,11 +26,11 @@ export default function WinnerNumbers({
 
   // Helper to get column label
   const getLabel = (n) => {
-    if (n <= 15) return "B";
-    if (n <= 30) return "I";
-    if (n <= 45) return "N";
-    if (n <= 60) return "G";
-    return "O";
+    if (n <= 15) return "S";
+    if (n <= 30) return "U";
+    if (n <= 45) return "P";
+    if (n <= 60) return "E";
+    return "R";
   };
 
   // Build columns for a standard bingo card
@@ -42,7 +42,7 @@ export default function WinnerNumbers({
     Array.from({ length: 15 }, (_, i) => 61 + i), // O
   ];
 
-  const headers = ["B", "I", "N", "G", "O"];
+  const headers = ["S", "U", "P", "E", "R"];
 
   const handleCellClick = (rowIdx, colIdx) => {
     setSelected((prev) => {
