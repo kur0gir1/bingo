@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export default function GameSwitcher({ games, selectedIndex, onSelect }) {
   return (
@@ -8,10 +8,12 @@ export default function GameSwitcher({ games, selectedIndex, onSelect }) {
           <button
             key={g.id}
             onClick={() => onSelect(i)}
-            className={`px-4 py-2 rounded-full font-bold text-black shadow-md transform transition-colors ${selectedIndex === i ? 'ring-4 ring-offset-2' : ''}`}
+            className={`px-4 py-2 rounded-full font-bold text-white shadow-md transform transition-colors ${
+              selectedIndex === i ? "ring-4 ring-offset-2" : ""
+            }`}
             style={{
-              backgroundColor: g.gradient,
-              border: 'none',
+              backgroundColor: g.color,
+              border: "none",
             }}
             aria-pressed={selectedIndex === i}
           >

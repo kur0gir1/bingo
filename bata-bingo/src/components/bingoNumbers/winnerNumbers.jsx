@@ -24,13 +24,13 @@ export default function WinnerNumbers({
 
   if (!open) return null;
 
-  // Helper to get column label
+  // Helper to get column label (standard bingo)
   const getLabel = (n) => {
-    if (n <= 15) return "S";
-    if (n <= 30) return "U";
-    if (n <= 45) return "P";
-    if (n <= 60) return "E";
-    return "R";
+    if (n <= 15) return "B";
+    if (n <= 30) return "I";
+    if (n <= 45) return "N";
+    if (n <= 60) return "G";
+    return "O";
   };
 
   // Build columns for a standard bingo card
@@ -42,7 +42,7 @@ export default function WinnerNumbers({
     Array.from({ length: 15 }, (_, i) => 61 + i), // O
   ];
 
-  const headers = ["S", "U", "P", "E", "R"];
+  const headers = ["B", "I", "N", "G", "O"];
 
   const handleCellClick = (rowIdx, colIdx) => {
     setSelected((prev) => {
@@ -61,61 +61,100 @@ export default function WinnerNumbers({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-      <div className="rounded-2xl shadow-2xl p-12 max-w-6xl w-[98vw] flex flex-col items-center relative max-h-[95vh] overflow-y-auto overflow-x-hidden">
-        <button
-          className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-blue-400 focus:outline-none"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          ×
-        </button>
-        <div className="w-full flex justify-center">
-          <table className="border-separate border-spacing-4 w-full text-2xl sm:text-4xl md:text-5xl">
-            <thead>
-              <tr>
-                {headers.map((h) => (
-                  <th
-                    key={h}
-                    className="text-white text-2xl sm:text-3xl md:text-4xl font-bold px-2 pb-2 text-center whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[...Array(15)].map((_, rowIdx) => (
-                <tr key={rowIdx}>
-                  {columns.map((col, colIdx) => {
-                    const num = col[rowIdx];
-                    const isDrawn = numbers && numbers.includes(num);
-                    const isSelected = selected[rowIdx][colIdx];
-                    return (
-                      <td
-                        key={colIdx}
-                        className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 text-center align-middle p-0"
-                      >
-                        <div
-                          className={`w-full h-full flex items-center justify-center rounded-lg font-extrabold shadow text-xl sm:text-3xl md:text-4xl cursor-pointer transition select-none ${
-                            isDrawn
-                              ? 'bg-[#0057D9] text-white shadow-lg'
-                              : 'bg-[#0b0b12] text-white'
-                          } ${isSelected ? 'ring-4 ring-black ring-opacity-40 ring-offset-2' : ''}`}
-                          onClick={() => handleCellClick(rowIdx, colIdx)}
-                          tabIndex={0}
-                          role="button"
-                          aria-pressed={isSelected}
-                        >
-                          {getLabel(num)} {num}
-                        </div>
-                      </td>
-                    );
-                  })}
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-70">
+      <div className="absolute inset-0 bg-neutral-900/95 p-6 flex flex-col items-center overflow-auto">
+        <div className="w-full mb-4 flex justify-end">
+          <button
+            className="inline-flex items-center justify-center p-3 sm:p-4 md:p-5 bg-white/5 hover:bg-white/10 text-white rounded-md text-3xl sm:text-4xl md:text-5xl focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:ring-offset-2"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="w-full mb-3 px-2">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-white text-2xl sm:text-3xl md:text-4xl font-semibold">
+              Numbers
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-white/80">
+                <span className="inline-block w-4 h-4 bg-[#0057D9] rounded-sm border" />
+                Drawn
+              </div>
+              <div className="flex items-center gap-2 text-sm text-white/80">
+                <span className="inline-block w-4 h-4 bg-neutral-800 rounded-sm border" />
+                Not drawn
+              </div>
+              <div className="flex items-center gap-2 text-sm text-white/80">
+                <span className="inline-block w-4 h-4 bg-amber-400 rounded-sm border" />
+                Selected
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full flex justify-center">
+            <table className="border-separate border-spacing-2 w-full h-full table-fixed">
+              <thead>
+                <tr>
+                  {headers.map((h) => (
+                    <th
+                      key={h}
+                      className="text-white text-lg font-bold px-2 pb-2 text-center whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {[...Array(15)].map((_, rowIdx) => (
+                  <tr key={rowIdx}>
+                    {columns.map((col, colIdx) => {
+                      const num = col[rowIdx];
+                      const isDrawn = numbers && numbers.includes(num);
+                      const isSelected = selected[rowIdx][colIdx];
+                      const baseClasses =
+                        "w-full h-full flex flex-col items-center justify-center rounded-md font-extrabold shadow-sm cursor-pointer transition-colors duration-150 select-none outline-none focus:ring-4 focus:ring-offset-2 focus:ring-indigo-400";
+                      const stateClasses = isDrawn
+                        ? "bg-[#0057D9] text-white"
+                        : "bg-neutral-800 text-white/90";
+                      const selectedClasses = isSelected
+                        ? "ring-4 ring-amber-400/60 ring-offset-2"
+                        : "";
+                      const cellClasses = `${baseClasses} ${stateClasses} ${selectedClasses} hover:brightness-110`;
+
+                      return (
+                        <td
+                          key={colIdx}
+                          className="w-1/5 h-28 sm:h-36 md:h-44 text-center align-middle p-2"
+                        >
+                          <div
+                            className={cellClasses}
+                            onClick={() => handleCellClick(rowIdx, colIdx)}
+                            tabIndex={0}
+                            role="button"
+                            aria-pressed={isSelected}
+                            aria-label={`${num} ${
+                              isDrawn ? "drawn" : "not drawn"
+                            } ${isSelected ? "selected" : ""}`}
+                          >
+                            <span className="text-base sm:text-lg md:text-xl font-semibold text-white/80">
+                              {getLabel(num)}
+                            </span>
+                            <span className="mt-2 text-4xl sm:text-6xl md:text-7xl">
+                              {num}
+                            </span>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
