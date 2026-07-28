@@ -52,6 +52,13 @@ export async function exportElementToPdf({ rootElement, filename }: ExportPdfOpt
       page.style.width = `${pageWidth}mm`
       page.style.minHeight = `${pageHeight}mm`
       page.style.height = `${pageHeight}mm`
+      page.style.maxHeight = `${pageHeight}mm`
+      page.style.overflow = 'hidden'
+      page.style.boxSizing = 'border-box'
+      page.style.display = 'flex'
+      page.style.flexDirection = 'column'
+      page.style.justifyContent = 'center'
+      page.style.alignItems = 'center'
 
       const canvas = await html2canvas(page, {
         scale: 2,

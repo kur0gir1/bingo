@@ -6,6 +6,7 @@ import { PrintableSheets } from './PrintableSheets'
 import { exportElementToPdf } from '../pdfExport'
 
 const WINNER_STORAGE_KEY = 'bingo-winners-v1'
+const GENERATION_STORAGE_KEY = 'bingo-generation-v1'
 
 function createEmptyWinnerState(): WinnerState {
   return {
@@ -34,12 +35,29 @@ function getInitialWinners(): WinnerState {
   }
 }
 
+function getInitialGeneration(): GenerationResult | null {
+  const raw = localStorage.getItem(GENERATION_STORAGE_KEY)
+  if (!raw) {
+    return null
+  }
+
+  try {
+    return JSON.parse(raw) as GenerationResult
+  } catch {
+    return null
+  }
+}
+
 export function BingoGeneratorPage() {
-  const [seed, setSeed] = useState('')
+  const [generation, setGeneration] = useState<GenerationResult | null>(() => getInitialGeneration())
+  const [seed, setSeed] = useState<string>(() => generation?.config.seed ?? '')
   const [activeColor, setActiveColor] = useState<ColorName>('green')
-  const [generation, setGeneration] = useState<GenerationResult | null>(null)
   const [winners, setWinners] = useState<WinnerState>(() => getInitialWinners())
-  const [status, setStatus] = useState<string>('Generate cards to begin.')
+  const [status, setStatus] = useState<string>(() =>
+    generation
+      ? `Restored digital copy of 1000 cards (Seed: "${generation.config.seed}").`
+      : 'Generate cards to begin.',
+  )
   const [isExportingPdf, setIsExportingPdf] = useState(false)
 
   const printRootRef = useRef<HTMLDivElement | null>(null)
@@ -60,10 +78,21 @@ export function BingoGeneratorPage() {
     try {
       const result = generateUniqueCards(seed)
       setGeneration(result)
-      setStatus(`Generated 1000 unique cards with seed "${result.config.seed}".`)
+      try {
+        localStorage.setItem(GENERATION_STORAGE_KEY, JSON.stringify(result))
+      } catch (err) {
+        console.warn('Failed to save bingo generation to localStorage:', err)
+      }
+      setStatus(`Generated 1000 unique cards with seed "${result.config.seed}" (saved to local storage).`)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Generation failed.')
     }
+  }
+
+  function handleClearSavedCards(): void {
+    localStorage.removeItem(GENERATION_STORAGE_KEY)
+    setGeneration(null)
+    setStatus('Saved digital copy cleared. Click Generate to create a new set.')
   }
 
   function handleClaimWinner(card: BingoCard): void {
@@ -178,6 +207,12 @@ export function BingoGeneratorPage() {
           >
             {isExportingPdf ? 'Exporting...' : 'Export PDF'}
           </button>
+
+          {generation ? (
+            <button type="button" className="secondary-button" onClick={handleClearSavedCards}>
+              Clear Saved Cards
+            </button>
+          ) : null}
 
           <button type="button" className="warning-button" onClick={handleResetAllWinners}>
             Reset All Winner Locks
