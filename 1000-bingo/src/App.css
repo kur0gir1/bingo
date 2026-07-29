@@ -48,19 +48,130 @@
   color: rgba(17, 32, 36, 0.8);
 }
 
-.actions-grid {
-  margin-top: 0.9rem;
+.config-controls {
+  margin-top: 1rem;
   display: grid;
-  grid-template-columns: 1fr 1fr repeat(4, minmax(120px, 1fr));
-  gap: 0.55rem;
-  align-items: end;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.2rem;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
 }
 
-.seed-label {
-  font-weight: 700;
+.cards-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-label {
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.84rem;
+  color: var(--ink-strong);
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cards-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cards-number-input {
+  width: 90px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  background: #ffffff;
+  color: var(--ink-strong);
+  padding: 0.35rem 0.55rem;
+  text-align: center;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cards-number-input:focus {
+  outline: none;
+  border-color: #0070f3;
+  box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.25);
+}
+
+.total-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: #0f4f55;
+  color: #fff8df;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+}
+
+.cards-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #dcd6c4;
+  outline: none;
+  accent-color: #0f4f55;
+  cursor: pointer;
+}
+
+.preset-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
+.preset-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(15, 79, 85, 0.85);
+  text-transform: uppercase;
+}
+
+.preset-chip {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--ink-strong);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.preset-chip:hover {
+  background: #efe5c7;
+}
+
+.preset-chip.active {
+  background: #0f4f55;
+  color: #ffffff;
+  border-color: #0f4f55;
+}
+
+.seed-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .seed-input {
@@ -69,6 +180,24 @@
   font-size: 0.95rem;
   background: #fffdf6;
   padding: 0.56rem 0.68rem;
+}
+
+.actions-row {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.actions-row .primary-button {
+  flex: 2;
+  min-width: 220px;
+}
+
+.actions-row .secondary-button,
+.actions-row .warning-button {
+  flex: 1;
+  min-width: 140px;
 }
 
 .primary-button,
@@ -82,6 +211,15 @@
   cursor: pointer;
   padding: 0.62rem 0.72rem;
   letter-spacing: 0.02em;
+  transition: filter 0.15s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.warning-button:hover,
+.claim-button:hover,
+.color-tab:hover {
+  filter: brightness(1.08);
 }
 
 .primary-button {
@@ -95,14 +233,15 @@
 }
 
 .warning-button {
-  background: #8f3127;
+  background: #c0392b;
   color: #fff;
 }
 
 .status-line {
   margin-top: 0.8rem;
   font-size: 0.92rem;
-  color: rgba(17, 32, 36, 0.82);
+  font-weight: 600;
+  color: rgba(17, 32, 36, 0.88);
 }
 
 .color-tabs {
@@ -114,7 +253,33 @@
 .color-tab {
   color: #fff;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.color-tab .tab-title {
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.color-tab .tab-sub {
+  font-size: 0.68rem;
+  opacity: 0.92;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.color-tab .tab-winner {
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  margin-top: 0.1rem;
 }
 
 .color-tab.active {
@@ -122,44 +287,45 @@
   outline-offset: 1px;
 }
 
+/* Brighter High-Vibrancy Colors for Web and Paper Printing */
 .color-green {
-  --card-bg: #188f77;
+  --card-bg: #00aa5a;
 }
 
 .color-orange {
-  --card-bg: #d87b2f;
+  --card-bg: #ff6f00;
 }
 
 .color-violet {
-  --card-bg: #6b53bb;
+  --card-bg: #8041c8;
 }
 
 .color-red {
-  --card-bg: #bc3d3b;
+  --card-bg: #ff3344;
 }
 
 .color-blue {
-  --card-bg: #246ec9;
+  --card-bg: #0070f3;
 }
 
 .color-tab.color-green {
-  background: #188f77;
+  background: #00aa5a;
 }
 
 .color-tab.color-orange {
-  background: #d87b2f;
+  background: #ff6f00;
 }
 
 .color-tab.color-violet {
-  background: #6b53bb;
+  background: #8041c8;
 }
 
 .color-tab.color-red {
-  background: #bc3d3b;
+  background: #ff3344;
 }
 
 .color-tab.color-blue {
-  background: #246ec9;
+  background: #0070f3;
 }
 
 .winner-tools {
@@ -168,6 +334,27 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.winner-tools-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.small-btn {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.printed-count-text {
+  font-weight: 800;
+  color: #0f4f55;
+}
+
+.overall-printed-info {
+  color: #00aa5a;
+  font-weight: 800;
 }
 
 .cards-grid {
@@ -184,16 +371,73 @@
   padding: 0.38rem;
   color: #fff8df;
   box-shadow: inset 0 0 0 1px rgba(255, 248, 223, 0.22);
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bingo-card.is-printed {
+  box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 3px #00aa5a;
 }
 
 .bingo-card-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-bottom: 0.2rem;
+}
+
+.meta-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.printed-badge {
+  background: #ffffff;
+  color: #007a3e;
+  font-size: 0.6rem;
+  font-weight: 900;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.card-actions {
+  margin-top: 0.4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.toggle-printed-button {
+  border: 0;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.5rem 0.4rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff8df;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.15s ease;
+}
+
+.toggle-printed-button:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.toggle-printed-button.is-printed-btn {
+  background: #ffffff;
+  color: #007a3e;
+  font-weight: 900;
+  border-color: #ffffff;
 }
 
 .bingo-brand-strip {
@@ -458,13 +702,18 @@
 }
 
 @media (max-width: 1000px) {
-  .actions-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .config-controls {
+    grid-template-columns: 1fr;
   }
 
-  .seed-label,
-  .seed-input {
-    grid-column: span 2;
+  .actions-row {
+    flex-direction: column;
+  }
+
+  .actions-row .primary-button,
+  .actions-row .secondary-button,
+  .actions-row .warning-button {
+    width: 100%;
   }
 
   .color-tabs {
