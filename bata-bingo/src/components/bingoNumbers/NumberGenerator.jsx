@@ -22,6 +22,10 @@ export default function NumberGenerator({ config }) {
       y: "Letter Y",
       c: "Letter C",
       blackout: "Blackout",
+      hollow_diamond: "Hollow Diamond",
+      x: "X",
+      hollow_square: "Hollow Square",
+      right_triangle: "Right Triangle",
     };
     return names[p] || (p ? p.charAt(0).toUpperCase() + p.slice(1) : "");
   };
@@ -137,6 +141,34 @@ export default function NumberGenerator({ config }) {
       case "blackout":
         for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) g[r][c] = true;
         return g;
+      case "hollow_diamond":
+        // Hollow diamond: diamond outline only
+        g[0][2] = true;
+        g[1][1] = g[1][3] = true;
+        g[2][0] = g[2][4] = true;
+        g[3][1] = g[3][3] = true;
+        g[4][2] = true;
+        return g;
+      case "x":
+        // X: both diagonals
+        for (let i = 0; i < 5; i++) {
+          g[i][i] = true;
+          g[i][4 - i] = true;
+        }
+        return g;
+      case "hollow_square":
+        // Hollow square: border only, hollow center
+        for (let c = 0; c < 5; c++) (g[0][c] = true), (g[4][c] = true);
+        for (let r = 1; r < 4; r++) (g[r][0] = true), (g[r][4] = true);
+        return g;
+      case "right_triangle":
+        // Acute triangle on the right side of the card (right-aligned)
+        g[0][4] = true;
+        g[1][3] = g[1][4] = true;
+        g[2][2] = g[2][3] = g[2][4] = true;
+        g[3][1] = g[3][2] = g[3][3] = g[3][4] = true;
+        g[4][0] = g[4][1] = g[4][2] = g[4][3] = g[4][4] = true;
+        return g;
       default:
         if (p) console.warn("[NumberGenerator] unknown pattern:", pattern);
         return g; // fallback: empty 5x5 grid
@@ -147,7 +179,7 @@ export default function NumberGenerator({ config }) {
     <div className="flex flex-col items-center w-full max-w-5xl mx-auto h-full justify-center px-2">
       <header className="w-full text-center py-3">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">
-          BNHS 20th Grand Alumni Homecoming Bingo
+          LCCB 77th Alumni Homecoming Bingo
         </h1>
       </header>
       {/* <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">

@@ -3,39 +3,39 @@ import WinnerNumbers from "./winnerNumbers";
 import GameSwitcher from "./GameSwitcher";
 import NumberGenerator from "./NumberGenerator";
 import Loader from "../loader/loader";
-import bgImage from "../../assets/bata bg.jpg";
+
 
 export default function BingoNumbers() {
-  // Games config: 5 games with color gradient and a simple pattern id
+  // Games config: 5 games for the 77th Alumni Homecoming
   const games = [
     {
       id: "g1",
       name: "Game 1",
-      color: "#1e90ff", // blue
-      pattern: "corners",
+      color: "#00aa5a", // green
+      pattern: "hollow_diamond",
     },
     {
       id: "g2",
       name: "Game 2",
-      color: "#ffb300", // yellow
-      pattern: "pyramid",
+      color: "#ff6f00", // orange
+      pattern: "x",
     },
     {
       id: "g3",
       name: "Game 3",
-      color: "#43a047", // green
-      pattern: "y",
+      color: "#8041c8", // violet
+      pattern: "hollow_square",
     },
     {
       id: "g4",
       name: "Game 4",
-      color: "#e53935", // red
-      pattern: "c",
+      color: "#ff3344", // red
+      pattern: "right_triangle",
     },
     {
       id: "g5",
       name: "Game 5",
-      color: "#8e24aa", // purple
+      color: "#0070f3", // blue
       pattern: "blackout",
     },
   ];
@@ -65,10 +65,6 @@ export default function BingoNumbers() {
       <div
         className="relative flex items-center justify-center w-full min-h-screen"
         style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           backgroundColor: games[selectedGame].color,
           transition: "background-color 400ms ease",
         }}
